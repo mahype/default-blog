@@ -7,7 +7,9 @@ function default_blog_posts_admin(){
 	
 	switch_to_blog( DFB_TEMPLATE_EDIT_BLOG_ID );
 	
-	$post_types = apply_filters( 'default_blog_post_types', get_post_types( '', 'object' ) );
+	$post_types = apply_filters( 'default_blog_post_types', default_blog_get_post_types_db( get_post_types( '', 'object' ) ) );
+	
+	// $post_types = apply_filters( 'default_blog_post_types',get_post_types( '', 'object' ) );
 	
 	$elements = array();
 	
@@ -57,10 +59,6 @@ function default_blog_posts_admin(){
 		);
 		
 		$the_query = new WP_Query( $args );
-		
-		echo '<pre>';
-		// print_r( $the_query );
-		echo '</pre>';
 		
 		while ( $the_query->have_posts() ) : $the_query->the_post();
 			global $post;
@@ -169,49 +167,57 @@ function default_blog_posts_admin(){
 			
 		endif;
 		
-		$taxonomies = get_taxonomies( array( 'object_type' => array( $post_type->name ) ), 'objects' );
+		// default_blog_get_post_type_taxonomies_db( $post_type->name );
+		
+		$taxonomies = default_blog_get_taxonomies_db( $post_type->name );
+		
+		// $taxonomies = get_taxonomies( array( 'object_type' => array( $post_type->name ) ), 'objects' );
 		
 		// Taxonomies
-		foreach( $taxonomies AS $taxonomy ):
-			
-			$terms = get_terms( $taxonomy->name, array( 'hide_empty' => FALSE ) );
-			
-			$content.= '<h3>' . $taxonomy->labels->name . '</h3>';
-			
-			if( count( $terms ) > 0 ):
-			
-				$content.= '<table class="widefat">';
+		if( is_array( $taxonomies ) ):
+			foreach( $taxonomies AS $taxonomy ):
 				
-				$content.= '<thead>';
-					$content.= '<tr>';
-						$content.= '<th>' . __( 'Title', 'default-blog-options' ) . '</th>';	
-						$content.= '<th>' . __( 'Copy Term', 'default-blog-options' ) . '</th>';
-			        $content.= '</tr>';
-				$content.= '</thead>';
+				// $terms = get_terms( $taxonomy->name, array( 'hide_empty' => FALSE ) );
 				
-				$content.= '<tbody>';
+				$terms = default_blog_get_terms_db( $taxonomy->name );
 				
-				foreach( $terms AS $term ):
-					$term_checked = '';
-					if( is_array( $default_blog_template[ $post_type->name . '_taxonomies' ][ $taxonomy->name ] ) )
-						if( in_array( $term->term_id, $default_blog_template[ $post_type->name . '_taxonomies' ][ $taxonomy->name ] ) )
-							$term_checked = ' checked="checked"';
+				$content.= '<h3>' . $taxonomy->labels->name . '</h3>';
+				
+				if( count( $terms ) > 0 ):
+				
+					$content.= '<table class="widefat">';
 					
-					$content.= '<tr>';
-						$content.= '<td>' . $term->name . '</td>';	
-						$content.= '<td><input type="checkbox" name="' . DFB_OPTION_GROUP . '[' . DFB_TEMPLATE_EDIT_ID . '][' . $post_type->name. '_taxonomies][' . $taxonomy->name  . '][]" value="' . $term->term_id . '"' . $term_checked . ' />';
-			        $content.= '</tr>';
-				endforeach;
+					$content.= '<thead>';
+						$content.= '<tr>';
+							$content.= '<th>' . __( 'Title', 'default-blog-options' ) . '</th>';	
+							$content.= '<th>' . __( 'Copy Term', 'default-blog-options' ) . '</th>';
+				        $content.= '</tr>';
+					$content.= '</thead>';
+					
+					$content.= '<tbody>';
+					
+					foreach( $terms AS $term ):
+						$term_checked = '';
+						if( is_array( $default_blog_template[ $post_type->name . '_taxonomies' ][ $taxonomy->name ] ) )
+							if( in_array( $term->term_id, $default_blog_template[ $post_type->name . '_taxonomies' ][ $taxonomy->name ] ) )
+								$term_checked = ' checked="checked"';
+						
+						$content.= '<tr>';
+							$content.= '<td>' . $term->name . '</td>';	
+							$content.= '<td><input type="checkbox" name="' . DFB_OPTION_GROUP . '[' . DFB_TEMPLATE_EDIT_ID . '][' . $post_type->name. '_taxonomies][' . $taxonomy->name  . '][]" value="' . $term->term_id . '"' . $term_checked . ' />';
+				        $content.= '</tr>';
+					endforeach;
+					
+					$content.= '</tbody>';
+		
+					$content.= '</table>';
 				
-				$content.= '</tbody>';
-	
-				$content.= '</table>';
-			
-			else:
-				$content.= '<p>' . __( 'No entry found.	', 'default-blog-options' ) . '</p>';
-			endif;
-			
-		endforeach;
+				else:
+					$content.= '<p>' . __( 'No entry found.	', 'default-blog-options' ) . '</p>';
+				endif;
+				
+			endforeach;
+		endif;
 		
 		$content = apply_filters( 'default-blog-posts-'. $post_type->name, $content );
 		
@@ -239,7 +245,7 @@ function default_blog_posts_copy( $from_blog_id, $to_blog_id, $args = array() ){
 	
 	// Setting up Post Types
 	$defaults = array(
-		'post_types' => apply_filters( 'default_blog_post_types', get_post_types() ),
+		'post_types' => apply_filters( 'default_blog_post_types', default_blog_get_post_types( get_post_types( '', 'object' ) ) ),
 		'template_id' => DFB_TEMPLATE_ID
 	);
 	
@@ -608,5 +614,138 @@ add_filter( 'default_blog_post_types', 'default_blog_posts_ignore' );
 
 function default_blog_posts_save( $input ){
 	return $input;
+}
+/*
+ * Getting all used Custom Post Types from existing blog
+ */
+function default_blog_get_post_types_db( $wp_post_types_array = FALSE ){
+	global $wpdb;
+	
+	$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT DISTINCT post_type FROM ' . $wpdb->prefix . 'posts' ) );
+	
+	$post_types = array();
+	
+	foreach( $rows as $row ):
+		if( array_key_exists( $row->post_type, $wp_post_types_array ) ):
+			$post_types[ $row->post_type ] = $wp_post_types_array[ $row->post_type ];
+		else:
+			$post_types[ $row->post_type ] = new stdClass;
+			$post_types[ $row->post_type ]->name = $row->post_type;
+			$post_types[ $row->post_type ]->label = $row->post_type;
+		endif;
+	endforeach;
+	
+	return $post_types;
+}
+
+/*
+ * Getting all used Custom Post Types from existing blog
+ */
+function default_blog_get_taxonomies_db( $post_type ){
+	global $wpdb;
+	
+	// Exit id post type is empty
+	if( '' == $post_type )
+		return;
+		
+	// Getting posts of post type
+	$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT ID FROM ' . $wpdb->prefix . 'posts WHERE post_type="' . $post_type . '"' ) );
+	
+	foreach( $rows as $row )
+		$post_ids[] = $row->ID;
+	
+	// Exit if no posts where found for post type
+	if( 0 == count( $post_ids ) )
+		return;
+	
+	// Creating SQL statement to get taxonomy ids
+	$sql = 'SELECT DISTINCT term_taxonomy_id FROM ' . $wpdb->prefix . 'term_relationships WHERE ';
+	
+	$i = 0;
+	
+	foreach( $post_ids AS $post_id ):
+		if( 0 == $i ):
+			$sql.= ' object_id="' . $post_id . '"';
+		else:
+			$sql.= ' OR object_id="' . $post_id . '"';
+		endif;
+		$i++;
+	endforeach;
+	
+	$rows = $wpdb->get_results( $wpdb->prepare( $sql ) );
+	
+	foreach( $rows as $row )
+		$term_taxonomy_ids[] = $row->term_taxonomy_id;
+	
+	// Exit if no taxonomies where found for post type
+	if( 0 == count( $term_taxonomy_ids ) )
+		return;
+	
+	// Creating SQL statement to get taxonomies
+	$sql = 'SELECT term_taxonomy_id, taxonomy FROM ' . $wpdb->prefix . 'term_taxonomy WHERE ';
+	
+	$i = 0;
+	
+	foreach( $term_taxonomy_ids AS $term_taxonomy_id ):
+		if( 0 == $i ):
+			$sql.= ' term_taxonomy_id="' . $term_taxonomy_id . '"';
+		else:
+			$sql.= ' OR term_taxonomy_id="' . $term_taxonomy_id . '"';
+		endif;
+		$i++;
+	endforeach;
+	
+	$rows = $wpdb->get_results( $wpdb->prepare( $sql ) );
+	
+	foreach( $rows as $row ):
+		$taxonomy = new stdClass;
+		$taxonomy->name = $row->taxonomy;
+		$taxonomy->labels->name = $row->taxonomy;
+		$taxonomies[] = $taxonomy;
+	endforeach;
+	
+	return $taxonomies;
+}
+
+function default_blog_get_terms_db( $taxonomy ){
+	global $wpdb;
+	
+	// Exit if taxonomy is empty
+	if( '' == $taxonomy )
+		return;
+		
+	// Getting posts of post type
+	$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT term_id FROM ' . $wpdb->prefix . 'term_taxonomy WHERE taxonomy="' . $taxonomy . '"' ) );
+	
+	foreach( $rows as $row )
+		$term_ids[] = $row->term_id;
+	
+	// Exit if no terms where found for taxonomy
+	if( 0 == count( $term_ids ) )
+		return;
+	
+	// Creating SQL statement to get taxonomies
+	$sql = 'SELECT term_id, name, slug FROM ' . $wpdb->prefix . 'terms WHERE ';
+	
+	foreach( $term_ids AS $term_id ):
+		if( 0 == $i ):
+			$sql.= ' term_id="' . $term_id . '"';
+		else:
+			$sql.= ' OR term_id="' . $term_id . '"';
+		endif;
+		$i++;
+	endforeach;
+	
+	$rows = $wpdb->get_results( $wpdb->prepare( $sql ) );
+	
+	foreach( $rows as $row ):
+		$term = new stdClass;
+		$term->term_id = $row->term_id;
+		$term->name = $row->slug;
+		$taxonomy->labels->name = $row->name;
+		$terms[] = $term;
+	endforeach;
+	
+	return $terms;
 }
 
