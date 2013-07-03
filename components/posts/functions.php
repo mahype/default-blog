@@ -245,7 +245,7 @@ function default_blog_posts_copy( $from_blog_id, $to_blog_id, $args = array() ){
 	
 	// Setting up Post Types
 	$defaults = array(
-		'post_types' => apply_filters( 'default_blog_post_types', default_blog_get_post_types( get_post_types( '', 'object' ) ) ),
+		'post_types' => apply_filters( 'default_blog_post_types', default_blog_get_post_types_db( get_post_types( '', 'object' ) ) ),
 		'template_id' => DFB_TEMPLATE_ID
 	);
 	
@@ -256,30 +256,32 @@ function default_blog_posts_copy( $from_blog_id, $to_blog_id, $args = array() ){
 	foreach( $post_types AS $post_type ):
 		
 		// Copy Taxonomies
-		$taxonomies = get_taxonomies( array( 'object_type' => array( $post_type ) ), 'objects' );
+		$taxonomies = get_taxonomies( array( 'object_type' => array( $post_type->name ) ), 'objects' );
 		$taxonomy_termlist = default_blog_copy_taxonomies( $post_type, $from_blog_id, $to_blog_id );
 		
-		if( $default_blog_template[ $post_type . '_delete_existing' ] ):
-			switch_to_blog( $to_blog_id );
-			
-			$args = array(
-				'numberposts' => -1,
-				'post_type' => $post_type
-			);
-			$delete_posts = get_posts( $args );
-			
-			foreach( $delete_posts AS $delete_post ):
-				wp_delete_post( $delete_post->ID, TRUE );
-			endforeach;
-			
-			restore_current_blog();
+		if( array_key_exists( $post_type->name . '_delete_existing', $default_blog_template) ):
+			if( $default_blog_template[ $post_type->name . '_delete_existing' ] ):
+				switch_to_blog( $to_blog_id );
+				
+				$args = array(
+					'numberposts' => -1,
+					'post_type' => $post_type->name
+				);
+				$delete_posts = get_posts( $args );
+				
+				foreach( $delete_posts AS $delete_post ):
+					wp_delete_post( $delete_post->ID, TRUE );
+				endforeach;
+				
+				restore_current_blog();
+			endif;
 		endif;
 		
 		// Getting all posts of post type
 		$args = array(
-			'post_type' => $post_type,
+			'post_type' => $post_type->name,
 			'posts_per_page' => -1, // Show all posts
-			'post__in' => $default_blog_template[ $post_type ] // Only taking selected posts
+			'post__in' => $default_blog_template[ $post_type->name ] // Only taking selected posts
 		);
 		
 		// Getting Posts from Soiurce Blog
@@ -293,20 +295,20 @@ function default_blog_posts_copy( $from_blog_id, $to_blog_id, $args = array() ){
 		
 			// Checking if comments have to be copied too
 			$copy_attachments = FALSE;
-			if ( is_array( $default_blog_template[ $post_type . '_attachments' ] ) )
-				if( in_array( $post->ID, $default_blog_template[ $post_type . '_attachments' ] ) )
+			if ( is_array( $default_blog_template[ $post_type->name . '_attachments' ] ) )
+				if( in_array( $post->ID, $default_blog_template[ $post_type->name . '_attachments' ] ) )
 					$copy_attachments = TRUE;
 			
 			// Checking if comments have to be copied too
 			$copy_meta = FALSE;
-			if ( is_array( $default_blog_template[ $post_type . '_meta' ] ) )
-				if( in_array( $post->ID, $default_blog_template[ $post_type . '_meta' ] ) )
+			if ( is_array( $default_blog_template[ $post_type->name . '_meta' ] ) )
+				if( in_array( $post->ID, $default_blog_template[ $post_type->name . '_meta' ] ) )
 					$copy_meta = TRUE;
 				
 			// Checking if comments have to be copied too
 			$copy_comments = FALSE;
-			if ( is_array( $default_blog_template[ $post_type . '_comments' ] ) )
-				if( in_array( $post->ID, $default_blog_template[ $post_type . '_comments' ] ) )
+			if ( is_array( $default_blog_template[ $post_type->name . '_comments' ] ) )
+				if( in_array( $post->ID, $default_blog_template[ $post_type->name . '_comments' ] ) )
 					$copy_comments = TRUE;
 			
 			// Copy post
