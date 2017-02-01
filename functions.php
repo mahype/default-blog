@@ -78,3 +78,13 @@ function get_dfb_plugin( $slug ){
 	endforeach;
 	
 }
+
+function is_dfb_page()
+{
+	if( !empty( $_GET[ 'page' ] ) && 'defaultblog' == $_GET[ 'page' ] )
+	{
+		return TRUE;
+	}
+
+	return FALSE;
+}

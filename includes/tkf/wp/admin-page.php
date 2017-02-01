@@ -233,7 +233,7 @@ class TK_Admin_Page_Creator{
 	}	
 }
 function tk_admin_pages( $elements = array(), $args = array(), $return = 'echo' ){
-	$tabs = new	TK_Admin_Pages( $args );
+	$pages = new TK_Admin_Pages( $args );
 
 	foreach ( $elements AS $element ){
 		$element['args'] = array(
@@ -241,8 +241,8 @@ function tk_admin_pages( $elements = array(), $args = array(), $return = 'echo' 
 			'menu_slug' => $element['menu_slug'],
 			'icon_url' => $element['icon_url'] 
 		);		
-		$tabs->add_page( $element['id'], $element['menu_title'], $element['page_title'], $element['content'], $element['args'] );
+		$pages->add_page( $element['id'], $element['menu_title'], $element['page_title'], $element['content'], $element['args'] );
 	}
 	
-	return tk_element_return( $accordion, $return );	
+	return tk_element_return( $pages, $return );	
 }

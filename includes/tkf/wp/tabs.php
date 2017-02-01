@@ -58,7 +58,7 @@ class TK_Jqueryui_Tabs extends TK_HTML{
 			if( $this->id == '' ){
 				$id = md5( rand() );
 			}else{
-				$id = $this->id;
+				$id = str_replace( '-', '_', $this->id );
 			}
 			
 			$html = '<script type="text/javascript">

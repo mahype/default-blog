@@ -5,13 +5,13 @@
  */
 
 // If Framework in same version is not existing
-if( !function_exists( 'tkf_init_011' ) ){
+if( !function_exists( 'tkf_init_012' ) ){
 	global $tkf_version;
 	
-	$this_tkf_version = '0.1.1';
+	$this_tkf_version = '0.1.2';
 	
 	// Initialize function of this version which have to be have hooked
-	function tkf_init_011(){
+	function tkf_init_012(){
 		require( 'core.php' );
 	}
 	// If there is already a framework started check version

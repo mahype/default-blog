@@ -4,7 +4,7 @@ Plugin Name: Default Blog
 Plugin URI: http://wordpress.org/extend/plugins/default-blog-options/
 Description: Create new blogs with values like Posts, Pages, Theme settings, Blog options ... from a default blog made by you.
 Author: Sven Lehnert, Sven Wagener
-Author URI: http://www.rheinschmiede.de
+Author URI: http://www.awesome.ug
 Version: 1.0 alpha
 License: (GNU General Public License 3.0 (GPL) http://www.gnu.org/licenses/gpl.html)
 Copyright: Sven Wagener
@@ -22,9 +22,6 @@ class default_blog{
 	var $templates;
 	var $components;
 	
-	function default_blog(){
-		$this->__construct();
-	}
 	function __construct(){
 		$this->constants(); // Setting general Constants
 		$this->get_options(); // Getting options
@@ -38,13 +35,18 @@ class default_blog{
 		
 		// Admin page
 		if( is_admin() ):
-			if( 'defaultblog' == $_GET['page'] || 'options.php' == basename( $_SERVER['REQUEST_URI'] ) ):
+			if ( isset( $_GET['page'] )
+			     && ( 'defaultblog' == $_GET['page'] || 'options.php' == basename( $_SERVER['REQUEST_URI'] ) ) ):
 				add_action( 'after_setup_theme', array( $this, 'admin_load_framework' ), 1 ); // Loading Framework
 				
 				add_action( 'admin_init', array( $this, 'register_settings' ) );
 				add_action( 'admin_head', array( $this, 'admin_css' ) );
-				add_action( 'admin_init',  array( $this, 'admin_js' ));
-				add_action( 'admin_head',  array( $this, 'admin_js_vars' ));
+
+				if( is_dfb_page() )
+				{
+					add_action( 'admin_init', array( $this, 'admin_js' ) );
+					add_action( 'admin_head', array( $this, 'admin_js_vars' ) );
+				}
 			endif;
 		endif;
 	}
@@ -116,7 +118,7 @@ class default_blog{
 	}
 	
 	public function load_textdomain(){
-		load_plugin_textdomain( 'default-blog-options', DFB_FOLDER . '/languages/' );
+		load_plugin_textdomain( 'default-blog-options' );
 	}
 	
 	function constants(){
@@ -215,13 +217,17 @@ class default_blog{
 		
 		if( is_array( $this->templates ) )
 			define( 'DFB_TEMPLATE_ID', $this->templates[ 'dfb_template_id' ] );
-		if( is_array( $this->template_options[ DFB_TEMPLATE_ID ] ) )
-			define( 'DFB_TEMPLATE_BLOG_ID', $this->template_options[ DFB_TEMPLATE_ID ][ 'blog_id' ] );
+		if( isset( $this->template_options[ DFB_TEMPLATE_ID ] )
+		    && is_array( $this->template_options[ DFB_TEMPLATE_ID ] )
+		)
+			define( 'DFB_TEMPLATE_BLOG_ID', $this->template_options[ DFB_TEMPLATE_ID ]['blog_id'] );
 		
 		if( is_array( $this->templates ) )
 			define( 'DFB_TEMPLATE_EDIT_ID', $this->templates[ 'dfb_template_edit_id' ] );
-		if( is_array( $this->template_options[ DFB_TEMPLATE_EDIT_ID ] ) )
-			define( 'DFB_TEMPLATE_EDIT_BLOG_ID', $this->template_options[ DFB_TEMPLATE_EDIT_ID ][ 'blog_id' ]);
+		if( isset( $this->template_options[ DFB_TEMPLATE_EDIT_ID ] )
+		    && is_array( $this->template_options[ DFB_TEMPLATE_EDIT_ID ] )
+		)
+			define( 'DFB_TEMPLATE_EDIT_BLOG_ID', $this->template_options[ DFB_TEMPLATE_EDIT_ID ]['blog_id' ]);
 	}
 
 	function update(){

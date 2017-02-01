@@ -60,18 +60,16 @@ class TK_WP_Form extends TK_Form{
 		return $html;
 	}
 }
-function tk_form( $id, $option_group, $content, $return_object = FALSE ){
+function tk_form( $id, $option_group, $content, $return = 'echo' ){
 	global $tk_form_instance_option_group;
 	$tk_form_instance_option_group = $option_group;
+	
+	
 	
 	$form = new TK_WP_Form( $id, $option_group );
 	$form->add_element( $content );
 	
-	if( TRUE == $return_object ){
-		return $form;
-	}else{
-		return $form->get_html();
-	}
+	return tk_element_return( $form, $return );	
 }
 function tk_form_content( $content ){
   global $tk_form_instance_content;

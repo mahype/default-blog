@@ -40,6 +40,8 @@ class TK_Export_Button extends TK_WP_Form_Button{
 		$args = wp_parse_args($args, $defaults);
 		extract( $args , EXTR_SKIP );
 		
+		$args['name'] = tk_get_field_name( $name );
+		
 		parent::__construct( $value, $args );
 		
 		$this->lookup_name = $name;

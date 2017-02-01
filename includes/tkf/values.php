@@ -172,17 +172,20 @@ class TK_Values{
 		 */
 		else:
 			$value = get_option( $option_group  . '_values' );
-					
-			// Setting up value
-			if( $multi_index != '' || is_int($multi_index) ):
-				if( is_array( $multi_index ) ):
-					// Getting values of multiindex array
-					$value = $this->get_multiindex_value( $value[ $name ], $multi_index );
+			
+			// If there is any value
+			if( '' !=  $value ):
+				// Setting up value
+				if( $multi_index != '' || is_int( $multi_index ) ):
+					if( is_array( $multi_index ) ):
+						// Getting values of multiindex array
+						$value = $this->get_multiindex_value( $value[ $name ], $multi_index );
+					else:
+						$value = $value[ $name ][ $multi_index ];
+					endif;
 				else:
-					$value = $value[ $name ][ $multi_index ];
+					$value = $value[ $name ];
 				endif;
-			else:
-				$value = $value[ $name ];
 			endif;
 		endif;
 		

@@ -38,8 +38,8 @@ class TK_Form_select extends TK_Form_element{
 			'multiselect' => FALSE,
 			'extra' => '',
 			'elements' => '',
-			'before_element' => '',
-			'after_element' => ''
+			'before_element' => $before_element,
+			'after_element' => $after_element
 		);
 		
 		$args = wp_parse_args($args, $defaults);
@@ -47,12 +47,12 @@ class TK_Form_select extends TK_Form_element{
 		
 		parent::__construct( $args );
 		
-		$this->before_element = $before_element;
-		$this->after_element = $after_element;	
-		
 		$this->size = $size;	
 		$this->multi_select = $multi_select;
 		$this->onchange = $onchange;
+		
+		$this->before_element = $before_element;
+		$this->after_element = $after_element;
 		
 		if( $this->onchange != '' ) $this->str_onchange = '  onchange="' . $this->onchange . '"';
 		if( $this->size != '' ) $this->str_size = ' size="' . $this->size . '"';

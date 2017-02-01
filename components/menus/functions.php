@@ -141,9 +141,11 @@ function default_blog_menus_copy( $from_blog_id, $to_blog_id ){
 		restore_current_blog();
 		
 		// Writing new Ids in Nav location Array
-		foreach( $nav_menu_locations AS $nav_menu_name => $nav_menu_location ):
-			$nav_menu_locations[ $nav_menu_name ] = $default_blog_menu_references[ $nav_menu_locations[ $nav_menu_name ] ];
-		endforeach;
+		if( is_array( $nav_menu_locations ) ):
+    		foreach( $nav_menu_locations AS $nav_menu_name => $nav_menu_location ):
+    			$nav_menu_locations[ $nav_menu_name ] = $default_blog_menu_references[ $nav_menu_locations[ $nav_menu_name ] ];
+    		endforeach;
+        endif;
 		
 		// Saving nav menu locations to new blog
 		switch_to_blog( $to_blog_id );

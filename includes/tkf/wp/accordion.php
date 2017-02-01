@@ -82,22 +82,22 @@ class TK_Jqueryui_Accordion extends TK_HTML{
 			if( $this->id == '' ){
 				$id = md5( rand() );
 			}else{
-				$id = $this->id;
+				$id = str_replace( '-', '_', $this->id );
 			}
 		
 			$html = '<script type="text/javascript">
 			jQuery(document).ready(function($){
 					
-				var cookieName = "stickyAccordion_' . $id . '";
+				var cookieName_' . $id . ' = "stickyAccordion_' . $id . '";
 				
 				$( ".' . $id . '" ).accordion({
 					header: "' . $this->title_tag . '", 
 					autoHeight: false, 
 					collapsible:true,
-					active: ( $.cookies.get( cookieName ) || 0 ),
+					active: ( $.cookies.get( cookieName_' . $id . ' ) || 0 ),
 					change: function( e, ui )
 					{
-						$.cookies.set( cookieName, $( this ).find( "' . $this->title_tag . '" ).index ( ui.newHeader[0] ) );
+						$.cookies.set( cookieName_' . $id . ', $( this ).find( "' . $this->title_tag . '" ).index ( ui.newHeader[0] ) );
 					}
 				});
 					

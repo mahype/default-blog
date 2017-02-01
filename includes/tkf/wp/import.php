@@ -35,31 +35,28 @@ class TK_Import_Button extends TK_WP_Fileuploader{
 			'option_group' => $tk_form_instance_option_group
 		);
 		
-		// Adding file actions
-		// add_filter( 'sanitize_option_' . $tk_form_instance_option_group . '_values', array( $this , 'validate_actions' ), 9999 );
-		
 		$parsed_args = wp_parse_args( $args, $defaults );
 		extract( $parsed_args , EXTR_SKIP );
 		
 		$this->id = $id;
 		$this->delete = TRUE;
 		$this->insert_attachement = FALSE;
+		$this->wp_name = $name;
 		
 		$this->done_import = FALSE;
 		
 		parent::__construct( $name, $parsed_args );
 	}
 	
-	function validate_actions( $input ){
+	function validate_actions( $input, $value ){
 		global $tk_form_instance_option_group;
 		
 		// If error occured
-		if( $_FILES[ $tk_form_instance_option_group . '_values' ][ 'error' ][ $this->wp_name ] != 0  ){
-			$input[ $this->wp_name ] = $this->value;
-			
-		}else{
+		if( $_FILES[ $tk_form_instance_option_group . '_values' ]['name'] != ''  ){
 			$file[ 'tmp_name' ] = $_FILES[ $tk_form_instance_option_group . '_values' ][ 'tmp_name' ][ $this->wp_name ];
-			$input = tk_import_values( $tk_form_instance_option_group, $file[ 'tmp_name' ] );			
+			
+			if( '' !=  $file[ 'tmp_name' ] )
+				$input = tk_import_values( $tk_form_instance_option_group, $file[ 'tmp_name' ] );			
 		}
 		
 		return $input;
@@ -67,15 +64,15 @@ class TK_Import_Button extends TK_WP_Fileuploader{
 
 	function get_html(){
 
-		$import_button = tk_form_button( __( 'Import settings', 'tkf' ), array( 'name' => 'import_settings' ) ); 
+		$import_button = tk_form_button( __( 'Import settings', 'tkf' ), array( 'name' => tk_get_field_name( $this->id . '_button' ) ), 'html' ); 
 		$this->after_element = $import_button . $this->after_element;
+		
 		$html = parent::get_html();
 		
 		return $html;
 	}
 }
 function tk_import_values( $option_group, $file_name ){
-	
 	if( !file_exists( $file_name ) )
 		return FALSE;
 	
